@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,19 +6,75 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bot, Mail, Lock, User, Building2, GraduationCap } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [campuses, setCampuses] = useState<Array<{ id: string; name: string; }>>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate('/dashboard');
+    }
+  }, [user, authLoading, navigate]);
+
+  // Fetch campuses
+  useEffect(() => {
+    const fetchCampuses = async () => {
+      const { data } = await supabase.from('campuses').select('id, name');
+      if (data) setCampuses(data);
+    };
+    fetchCampuses();
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    // Authentication logic will be added after Lovable Cloud setup
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    const { data } = await signIn(email, password);
+    
+    if (data?.user) {
+      navigate('/dashboard');
+    }
+    setIsLoading(false);
   };
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const fullName = formData.get('fullName') as string;
+    const role = formData.get('role') as 'student' | 'lecturer' | 'admin';
+    const campusId = formData.get('campus') as string;
+
+    const { data } = await signUp(email, password, {
+      full_name: fullName,
+      role,
+      campus_id: campusId,
+    });
+
+    if (data?.user) {
+      // User created successfully, they can now log in
+      navigate('/dashboard');
+    }
+    setIsLoading(false);
+  };
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -47,13 +103,14 @@ const Auth = () => {
 
             {/* Login Tab */}
             <TabsContent value="login">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email Address</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="login-email"
+                      name="email"
                       type="email"
                       placeholder="your.email@kca.ac.ke"
                       className="pl-10"
@@ -68,6 +125,7 @@ const Auth = () => {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="login-password"
+                      name="password"
                       type="password"
                       placeholder="Enter your password"
                       className="pl-10"
@@ -94,13 +152,14 @@ const Auth = () => {
 
             {/* Register Tab */}
             <TabsContent value="register">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Full Name</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="register-name"
+                      name="fullName"
                       type="text"
                       placeholder="John Doe"
                       className="pl-10"
@@ -115,6 +174,7 @@ const Auth = () => {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="register-email"
+                      name="email"
                       type="email"
                       placeholder="student@kca.ac.ke"
                       className="pl-10"
@@ -128,7 +188,7 @@ const Auth = () => {
                   <Label htmlFor="register-role">I am a...</Label>
                   <div className="relative">
                     <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                    <Select required>
+                    <Select name="role" required>
                       <SelectTrigger className="pl-10">
                         <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
@@ -145,14 +205,16 @@ const Auth = () => {
                   <Label htmlFor="register-campus">Campus</Label>
                   <div className="relative">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                    <Select required>
+                    <Select name="campus" required>
                       <SelectTrigger className="pl-10">
                         <SelectValue placeholder="Select your campus" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="main">Main Campus</SelectItem>
-                        <SelectItem value="town">Town Campus</SelectItem>
-                        <SelectItem value="kitengela">Kitengela Campus</SelectItem>
+                        {campuses.map(campus => (
+                          <SelectItem key={campus.id} value={campus.id}>
+                            {campus.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -164,9 +226,11 @@ const Auth = () => {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="register-password"
+                      name="password"
                       type="password"
                       placeholder="Create a strong password"
                       className="pl-10"
+                      minLength={8}
                       required
                     />
                   </div>

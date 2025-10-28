@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useChat } from "@/hooks/useChat";
 import {
   Bot,
   Send,
@@ -15,34 +18,45 @@ import {
   LogOut,
   Settings,
   MessageSquare,
-  Clock
+  Clock,
+  Loader2
 } from "lucide-react";
 
 const Dashboard = () => {
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "Hello! I'm KCA Connect AI. How can I help you today? You can ask me about timetables, fees, exams, or any other university information."
-    }
-  ]);
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { messages, isLoading, sendMessage } = useChat();
   const [inputValue, setInputValue] = useState("");
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user && !authLoading) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isLoading) return;
 
-    // Add user message
-    setMessages([...messages, { role: "user", content: inputValue }]);
+    await sendMessage(inputValue);
     setInputValue("");
-
-    // Simulate AI response (will be replaced with actual AI integration)
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "I'm here to help! Once we connect Lovable Cloud and AI, I'll be able to provide real-time answers to your questions."
-      }]);
-    }, 1000);
   };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (authLoading || !user) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  const userInitials = user.user_metadata?.full_name
+    ?.split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase() || 'U';
 
   return (
     <div className="h-screen flex flex-col md:flex-row">
@@ -58,11 +72,11 @@ const Dashboard = () => {
           
           <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
             <Avatar>
-              <AvatarFallback className="bg-primary text-primary-foreground">JS</AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground">{userInitials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">John Student</p>
-              <p className="text-xs text-muted-foreground truncate">Main Campus</p>
+              <p className="text-sm font-medium truncate">{user.user_metadata?.full_name || 'User'}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
         </div>
@@ -98,7 +112,10 @@ const Dashboard = () => {
               <Settings className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm">Settings</span>
             </button>
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-smooth text-left">
+            <button 
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-smooth text-left"
+            >
               <LogOut className="h-5 w-5" />
               <span className="text-sm">Sign Out</span>
             </button>
@@ -160,7 +177,7 @@ const Dashboard = () => {
                 {message.role === "user" && (
                   <Avatar className="flex-shrink-0">
                     <AvatarFallback className="bg-secondary text-secondary-foreground">
-                      JS
+                      {userInitials}
                     </AvatarFallback>
                   </Avatar>
                 )}
@@ -179,8 +196,14 @@ const Dashboard = () => {
                 placeholder="Ask me anything about KCA University..."
                 className="flex-1"
               />
-              <Button type="submit" variant="hero" size="icon" className="flex-shrink-0">
-                <Send className="h-4 w-4" />
+              <Button 
+                type="submit" 
+                variant="hero" 
+                size="icon" 
+                className="flex-shrink-0"
+                disabled={isLoading || !inputValue.trim()}
+              >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </form>
             <p className="text-xs text-muted-foreground mt-2 text-center">
