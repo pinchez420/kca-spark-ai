@@ -18,7 +18,14 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [campuses, setCampuses] = useState<Array<{ id: string; name: string; }>>([]);
+
+  // KC AU Campus options
+  const campuses = [
+    { id: 'main', name: 'Main' },
+    { id: 'kitengela', name: 'Kitengela' },
+    { id: 'town', name: 'Town' },
+    { id: 'western', name: 'Western' }
+  ];
   
   // Email validation states
   const [loginEmail, setLoginEmail] = useState("");
@@ -32,15 +39,6 @@ const Auth = () => {
       navigate('/dashboard');
     }
   }, [user, authLoading, navigate]);
-
-  // Fetch campuses
-  useEffect(() => {
-    const fetchCampuses = async () => {
-      const { data } = await supabase.from('campuses').select('id, name');
-      if (data) setCampuses(data);
-    };
-    fetchCampuses();
-  }, []);
 
   // Real-time email validation
   const handleEmailChange = async (email: string, isRegistration: boolean = false) => {
@@ -175,11 +173,12 @@ const Auth = () => {
                   <Label htmlFor="login-email">Email Address</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+
                     <Input
                       id="login-email"
                       name="email"
                       type="email"
-                      placeholder="220000@students.kcau.ac.ke"
+                      placeholder="2200000@students.kcau.ac.ke"
                       className={`pl-10 pr-10 ${!emailValidation.isValid && loginEmail ? 'border-red-500 focus:border-red-500' : ''}`}
                       required
                       value={loginEmail}
@@ -200,7 +199,9 @@ const Auth = () => {
                   {!emailValidation.isValid && loginEmail && (
                     <p className="text-xs text-red-500 mt-1">{emailValidation.error}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">Use your KCA student email: 220000@students.kcau.ac.ke</p>
+
+
+                  <p className="text-xs text-muted-foreground">Use your KCA student email: 2200000@students.kcau.ac.ke</p>
                 </div>
 
                 <div className="space-y-2">
@@ -257,11 +258,12 @@ const Auth = () => {
                   <Label htmlFor="register-email">KCA Student Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+
                     <Input
                       id="register-email"
                       name="email"
                       type="email"
-                      placeholder="220000@students.kcau.ac.ke"
+                      placeholder="2200000@students.kcau.ac.ke"
                       className={`pl-10 pr-10 ${!emailValidation.isValid && registerEmail ? 'border-red-500 focus:border-red-500' : ''}`}
                       required
                       value={registerEmail}
@@ -282,7 +284,8 @@ const Auth = () => {
                   {!emailValidation.isValid && registerEmail && (
                     <p className="text-xs text-red-500 mt-1">{emailValidation.error}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">Format: 6-digit student number + @students.kcau.ac.ke</p>
+
+                  <p className="text-xs text-muted-foreground">Format: 6 or 7-digit student number + @students.kcau.ac.ke</p>
                 </div>
 
                 <div className="space-y-2">

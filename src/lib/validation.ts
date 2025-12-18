@@ -1,10 +1,11 @@
 // Email validation utilities for KCA University student emails
 
+
 /**
  * Regex pattern for valid KCA student email format:
- * 6-digit student number + @students.kcau.ac.ke
+ * 6 or 7-digit student number + @students.kcau.ac.ke
  */
-export const STUDENT_EMAIL_PATTERN = /^[0-9]{6}@students\.kcau\.ac\.ke$/;
+export const STUDENT_EMAIL_PATTERN = /^[0-9]{6,7}@students\.kcau\.ac\.ke$/;
 
 /**
  * Validates if an email follows the KCA student email format
@@ -29,10 +30,12 @@ export const validateStudentEmail = (email: string): { isValid: boolean; error?:
     return { isValid: false, error: 'Email is required' };
   }
 
+
+
   if (!isValidStudentEmail(email)) {
     return { 
       isValid: false, 
-      error: 'Email must be in format: 220000@students.kcau.ac.ke (6-digit student number)' 
+      error: 'Email must be in format: 2200000@students.kcau.ac.ke (6 or 7-digit student number)' 
     };
   }
 
@@ -70,9 +73,10 @@ export const validatePassword = (password: string): { isValid: boolean; error?: 
 /**
  * Validates if a student number exists in the database
  */
+
 export const validateStudentNumberExists = async (studentNumber: string): Promise<{ isValid: boolean; error?: string }> => {
-  if (!studentNumber || !/^[0-9]{6}$/.test(studentNumber)) {
-    return { isValid: false, error: 'Invalid student number format' };
+  if (!studentNumber || !/^[0-9]{6,7}$/.test(studentNumber)) {
+    return { isValid: false, error: 'Invalid student number format (6 or 7 digits required)' };
   }
 
   try {
