@@ -167,7 +167,8 @@ const Landing = () => {
               {
                 step: "01",
                 title: "Create Account",
-                description: "Sign up with your KCA University email and select your campus"
+
+                description: "Sign up with your 6-digit student email and select your campus"
               },
               {
                 step: "02",
