@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bot, Mail, Lock, User, Building2, GraduationCap, CheckCircle, XCircle, MailCheck } from "lucide-react";
+import { Bot, Mail, Lock, User, Building2, GraduationCap, CheckCircle, XCircle, MailCheck, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,13 @@ const Auth = () => {
   
   // Sign up confirmation state
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
+  
+  // Password visibility states
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMatchError, setPasswordMatchError] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -100,6 +107,13 @@ const Auth = () => {
     const role = formData.get('role') as 'student' | 'lecturer' | 'admin';
     const campusId = formData.get('campus') as string;
 
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      setPasswordMatchError(true);
+      setIsLoading(false);
+      return;
+    }
+    setPasswordMatchError(false);
 
     // Validate email format
     const emailValidation = validateStudentEmail(email);
@@ -238,11 +252,18 @@ const Auth = () => {
                     <Input
                       id="login-password"
                       name="password"
-                      type="password"
+                      type={showLoginPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -358,16 +379,53 @@ const Auth = () => {
                     <Input
                       id="register-password"
                       name="password"
-                      type="password"
+                      type={showRegisterPassword ? "text" : "password"}
                       placeholder="Create a strong password"
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       minLength={8}
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     At least 8 characters with uppercase, lowercase, and numbers
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="confirm-password"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      className={`pl-10 pr-10 ${passwordMatchError ? 'border-red-500 focus:border-red-500' : ''}`}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordMatchError(false);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {passwordMatchError && (
+                    <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                  )}
                 </div>
 
                 <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
