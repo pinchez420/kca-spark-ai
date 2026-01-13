@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Mail, Lock, User, Building2, GraduationCap, CheckCircle, XCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bot, Mail, Lock, User, Building2, GraduationCap, CheckCircle, XCircle, MailCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,9 @@ const Auth = () => {
   const [registerEmail, setRegisterEmail] = useState("");
   const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; error?: string }>({ isValid: true });
   const [emailChecking, setEmailChecking] = useState(false);
+  
+  // Sign up confirmation state
+  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -123,14 +127,26 @@ const Auth = () => {
       return;
     }
 
-    const { data } = await signUp(email, password, {
+    const { data, needsEmailConfirmation } = await signUp(email, password, {
       full_name: fullName,
       role,
       campus_id: campusId,
     });
 
     if (data?.user) {
-      // User created successfully, they can now log in
+      if (needsEmailConfirmation) {
+        // Email confirmation required - show message and switch to login tab
+        setShowConfirmationMessage(true);
+        setIsLoading(false);
+        // Switch to login tab after a short delay
+        setTimeout(() => {
+          document.querySelector('[data-value="login"]')?.dispatchEvent(
+            new MouseEvent('click', { bubbles: true })
+          );
+        }, 2000);
+        return;
+      }
+      // User is automatically signed in (email confirmation disabled)
       navigate('/dashboard');
     }
     setIsLoading(false);
@@ -164,6 +180,17 @@ const Auth = () => {
               <TabsTrigger value="login">Sign In</TabsTrigger>
               <TabsTrigger value="register">Sign Up</TabsTrigger>
             </TabsList>
+
+            {/* Email Confirmation Success Message */}
+            {showConfirmationMessage && (
+              <Alert className="mb-6 bg-green-50 border-green-200">
+                <MailCheck className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  <strong>Check your email!</strong> We've sent a confirmation link to your email. 
+                  Please verify your email to complete registration, then sign in below.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Login Tab */}
             <TabsContent value="login">

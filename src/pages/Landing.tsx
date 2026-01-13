@@ -11,7 +11,8 @@ import {
   Shield,
   Zap,
   Users,
-  MessageCircle
+  MessageCircle,
+  Settings
 } from "lucide-react";
 
 const Landing = () => {
@@ -242,9 +243,15 @@ const Landing = () => {
               <Bot className="h-6 w-6 text-primary" />
               <span className="font-semibold">KCA Connect AI</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2025 KCA Connect AI. Built for KCA University students.
-            </p>
+            <div className="flex items-center gap-4">
+              <Link to="/test-supabase" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Settings className="h-4 w-4" />
+                Debug Supabase
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                © 2025 KCA Connect AI. Built for KCA University students.
+              </p>
+            </div>
           </div>
         </div>
       </footer>

@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
@@ -347,6 +345,42 @@ export type Database = {
         }
         Relationships: []
       }
+      student_registrations: {
+        Row: {
+          admission_year: number | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean | null
+          program: string | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          admission_year?: number | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          program?: string | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          admission_year?: number | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          program?: string | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       timetable: {
         Row: {
           academic_year: string | null
@@ -517,6 +551,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_student_registration: {
+        Args: {
+          p_student_id: string
+        }
+        Returns: {
+          is_valid: boolean
+          error_message: string
+          student_name: string
+          program: string
+        }[]
+      }
     }
     Enums: {
       app_role: "student" | "lecturer" | "admin"
@@ -651,3 +696,4 @@ export const Constants = {
     },
   },
 } as const
+

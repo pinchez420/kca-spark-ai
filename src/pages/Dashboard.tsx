@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Bot,
   Send,
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { messages, isLoading, sendMessage } = useChat();
   const [inputValue, setInputValue] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -34,6 +36,37 @@ const Dashboard = () => {
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
+
+  // Load user profile avatar
+  useEffect(() => {
+    const loadAvatar = async () => {
+      if (user?.id) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        } else if (error?.code === 'PGRST116') {
+          // Profile doesn't exist, create it
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            });
+          
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+      }
+    };
+    
+    loadAvatar();
+  }, [user]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,15 +103,19 @@ const Dashboard = () => {
             </span>
           </div>
           
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
+          <button 
+            onClick={() => navigate('/settings')}
+            className="w-full flex items-center gap-3 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors cursor-pointer"
+          >
             <Avatar>
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt="Profile" /> : null}
               <AvatarFallback className="bg-primary text-primary-foreground">{userInitials}</AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.user_metadata?.full_name || 'User'}</p>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-medium truncate text-foreground">{user.user_metadata?.full_name || 'User'}</p>
               <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
-          </div>
+          </button>
         </div>
 
         <ScrollArea className="flex-1 p-4">
@@ -86,20 +123,21 @@ const Dashboard = () => {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Quick Actions</h3>
             
             {[
-              { icon: Calendar, label: "My Timetable", badge: "Today" },
-              { icon: DollarSign, label: "Fee Status", badge: null },
-              { icon: GraduationCap, label: "Exam Schedule", badge: "3" },
-              { icon: Bell, label: "Announcements", badge: "5" },
-              { icon: MessageSquare, label: "New Chat", badge: null },
+              { icon: Calendar, label: "My Timetable", action: () => navigate('/timetable'), badge: "Today" },
+              { icon: DollarSign, label: "Fee Status", action: () => navigate('/fees'), badge: null },
+              { icon: GraduationCap, label: "Exam Schedule", action: () => navigate('/exams'), badge: "3" },
+              { icon: Bell, label: "Announcements", action: () => navigate('/announcements'), badge: "5" },
+              { icon: MessageSquare, label: "New Chat", action: () => {}, badge: null },
             ].map((item, index) => (
               <button
                 key={index}
-                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-smooth text-left group"
+                onClick={item.action}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent/80 transition-colors text-left cursor-pointer"
               >
-                <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-smooth" />
-                <span className="flex-1 text-sm">{item.label}</span>
+                <item.icon className="h-5 w-5 text-muted-foreground transition-colors" />
+                <span className="flex-1 text-sm text-foreground">{item.label}</span>
                 {item.badge && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-foreground">
                     {item.badge}
                   </span>
                 )}
@@ -108,13 +146,16 @@ const Dashboard = () => {
           </div>
 
           <div className="mt-6 pt-6 border-t border-border space-y-2">
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-smooth text-left">
+            <button 
+              onClick={() => navigate('/settings')}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent/80 transition-colors text-left cursor-pointer text-foreground"
+            >
               <Settings className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm">Settings</span>
+              <span className="text-sm text-foreground">Settings</span>
             </button>
             <button 
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-smooth text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-left cursor-pointer"
             >
               <LogOut className="h-5 w-5" />
               <span className="text-sm">Sign Out</span>
@@ -167,8 +208,8 @@ const Dashboard = () => {
                 <div
                   className={`max-w-[80%] md:max-w-[70%] rounded-2xl p-4 ${
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground ml-auto"
-                      : "bg-card border border-border"
+                      ? "bg-primary text-primary-foreground"
+                      : ""
                   }`}
                 >
                   <p className="text-sm leading-relaxed">{message.content}</p>
@@ -176,6 +217,7 @@ const Dashboard = () => {
 
                 {message.role === "user" && (
                   <Avatar className="flex-shrink-0">
+                    {avatarUrl ? <AvatarImage src={avatarUrl} alt="Profile" /> : null}
                     <AvatarFallback className="bg-secondary text-secondary-foreground">
                       {userInitials}
                     </AvatarFallback>

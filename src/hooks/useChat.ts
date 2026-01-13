@@ -1,18 +1,74 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+// Typing animation hook
+const useTypingAnimation = (text: string, speed: number = 30, isEnabled: boolean = true) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!isEnabled) {
+      setDisplayedText(text);
+      setIsTyping(false);
+      return;
+    }
+
+    setDisplayedText('');
+    setIsTyping(true);
+    let currentIndex = 0;
+
+    const typeChar = () => {
+      if (currentIndex < text.length) {
+        setDisplayedText(prev => prev + text[currentIndex]);
+        currentIndex++;
+        timeoutRef.current = setTimeout(typeChar, speed);
+      } else {
+        setIsTyping(false);
+      }
+    };
+
+    // Small delay before starting
+    timeoutRef.current = setTimeout(typeChar, 500);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [text, speed, isEnabled]);
+
+  return { displayedText, isTyping };
+};
+
 export const useChat = (sessionId?: string) => {
+  const welcomeMessage = "Hello! I'm KCA Connect AI. How can I help you today? You can ask me about timetables, fees, exams, or any other university information.";
+  
+  const { displayedText: welcomeDisplay, isTyping: isWelcomeTyping } = useTypingAnimation(welcomeMessage, 25);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hello! I'm KCA Connect AI. How can I help you today? You can ask me about timetables, fees, exams, or any other university information."
+      content: welcomeMessage
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Update initial message with typing effect
+  useEffect(() => {
+    if (welcomeDisplay && isWelcomeTyping) {
+      setMessages([
+        {
+          role: 'assistant',
+          content: welcomeDisplay
+        }
+      ]);
+    }
+  }, [welcomeDisplay, isWelcomeTyping]);
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -111,5 +167,6 @@ export const useChat = (sessionId?: string) => {
     messages,
     isLoading,
     sendMessage,
+    isWelcomeTyping
   };
 };
