@@ -194,47 +194,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 px-4 gradient-subtle">
-        <div className="container mx-auto max-w-5xl">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            {[
-              { number: "3", label: "Campuses Supported" },
-              { number: "24/7", label: "Availability" },
-              { number: "< 3s", label: "Response Time" },
-              { number: "100%", label: "Accurate Information" }
-            ].map((stat, index) => (
-              <div key={index}>
-                <div className="text-4xl font-bold text-primary mb-2">{stat.number}</div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl text-center">
-          <Card className="p-12 gradient-card shadow-glow">
-            <Shield className="h-16 w-16 text-primary mx-auto mb-6" />
-            <h2 className="mb-4">Ready to Transform Your Academic Experience?</h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Join hundreds of KCA University students already using AI to stay organized and informed.
-            </p>
-            <Link to="/auth">
-              <Button variant="hero" size="xl">
-                <Bot className="mr-2 h-5 w-5" />
-                Get Started Free
-              </Button>
-            </Link>
-            <p className="text-sm text-muted-foreground mt-4">
-              No credit card required • Available for all KCA students
-            </p>
-          </Card>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4">
         <div className="container mx-auto">
