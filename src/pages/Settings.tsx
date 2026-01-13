@@ -205,46 +205,47 @@ const Settings = () => {
     .toUpperCase() || 'U';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-dvh flex flex-col overflow-hidden bg-background">
       {/* Header */}
-      <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="border-b border-border flex-shrink-0 bg-background/95 backdrop-blur">
+        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <Bot className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">Settings</span>
+              <Bot className="h-5 w-5 text-primary" />
+              <span className="font-bold text-base">Settings</span>
             </div>
           </div>
-          <Button variant="hero" size="sm" onClick={handleSaveProfile} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
+          <Button variant="hero" size="sm" onClick={handleSaveProfile} disabled={saving} className="text-xs">
+            <Save className="h-3 w-3 mr-1" />
+            {saving ? "Saving..." : "Save"}
           </Button>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="gap-2">
-              <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Appearance</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Security</span>
-            </TabsTrigger>
-          </TabsList>
+      <div className="flex-1 overflow-auto">
+        <div className="container mx-auto px-3 py-4 md:px-4 md:py-8 max-w-4xl">
+          <Tabs defaultValue="profile" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4 text-xs">
+              <TabsTrigger value="profile" className="gap-1">
+                <User className="h-3 w-3" />
+                <span className="hidden xs:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="appearance" className="gap-1">
+                <Palette className="h-3 w-3" />
+                <span className="hidden xs:inline">Appearance</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="gap-1">
+                <Bell className="h-3 w-3" />
+                <span className="hidden xs:inline">Notifications</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="gap-1">
+                <Shield className="h-3 w-3" />
+                <span className="hidden xs:inline">Security</span>
+              </TabsTrigger>
+            </TabsList>
 
           {/* Profile Tab */}
           <TabsContent value="profile">
@@ -547,6 +548,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </div>
   );

@@ -84,7 +84,7 @@ const Dashboard = () => {
     .toUpperCase() || 'U';
 
   return (
-    <div className="h-screen flex flex-col md:flex-row overflow-hidden">
+    <div className="h-dvh flex flex-col md:flex-row overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
@@ -96,12 +96,12 @@ const Dashboard = () => {
       {/* Sidebar - Hidden on mobile unless opened */}
       <aside className={`
         fixed md:relative inset-y-0 left-0 z-50
-        w-72 md:w-64 border-r border-border bg-card flex-shrink-0 h-full
+        w-72 md:w-64 border-r border-border bg-card flex-shrink-0 h-dvh
         transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Bot className="h-8 w-8 text-primary" />
@@ -181,7 +181,7 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Chat Area */}
-      <main className="flex-1 flex flex-col bg-background min-w-0">
+      <main className="flex-1 flex flex-col bg-background min-w-0 h-dvh">
         {/* Header */}
         <header className="h-14 md:h-16 border-b border-border flex items-center justify-between px-3 md:px-6 flex-shrink-0">
           <div className="flex items-center gap-2 md:gap-3">
@@ -244,7 +244,7 @@ const Dashboard = () => {
           </div>
         </ScrollArea>
 
-        {/* Input Area */}
+        {/* Input Area - Always visible */}
         <div className="border-t border-border p-3 md:p-4 bg-background flex-shrink-0">
           <div className="max-w-2xl mx-auto">
             <form onSubmit={handleSendMessage} className="flex gap-2">
